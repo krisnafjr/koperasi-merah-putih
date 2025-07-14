@@ -25,7 +25,7 @@ export default function Hero() {
         {/* UKURAN FONT JUDUL DIKECILKAN */}
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
           Selamat Datang di
-          <span className="block mt-2">Desa <span className="text-red-500">Merah Putih</span></span>
+          <span className="block mt-2">Desa <span className="text-red-500">Pesanggrahan</span></span>
         </h1>
         
         {/* JARAK DI TAMBAH & FONT DISESUAIKAN */}

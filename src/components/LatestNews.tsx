@@ -1,54 +1,58 @@
-// src/components/LatestNews.tsx (Layout Baru yang Lebih Modern)
+// src/components/LatestNews.tsx
 
-import Image from "next/image";
-import Link from "next/link";
+import Link from 'next/link';
+import Image from 'next/image';
+import { client} from '@/sanity/lib/client';
+import { urlFor } from '@/sanity/lib/image';
 
-// Data berita statis (tidak perlu diubah)
-const newsData = [
-    {
-        title: "Rapat Anggota Tahunan 2025 Sukses Digelar",
-        excerpt: "Seluruh anggota Koperasi Merah Putih berkumpul untuk membahas laporan tahunan dan rencana strategis ke depan.",
-        image: "/berita_posyandu.jpg",
-        date: "05 Juli 2025",
-        slug: "/berita/rapat-anggota-2025",
-    },
-    {
-        title: "Pelatihan Pemasaran Digital untuk Anggota UMKM",
-        excerpt: "Bekerja sama dengan universitas lokal, koperasi memberikan pelatihan untuk meningkatkan penjualan produk anggota.",
-        image: "/berita_hepatitis.jpg",
-        date: "28 Juni 2025",
-        slug: "/berita/pelatihan-pemasaran-digital",
-    },
-    {
-        title: "Panen Raya Padi Organik Desa Pesanggrahan",
-        excerpt: "Anggota petani merayakan hasil panen padi organik yang melimpah, menunjukkan keberhasilan program pertanian berkelanjutan.",
-        image: "/berita_agustus.jpg",
-        date: "15 Juni 2025",
-        slug: "/berita/panen-raya-padi-organik",
-    },
-        {
-        title: "Panen Raya Padi Organik Desa Pesanggrahan",
-        excerpt: "Anggota petani merayakan hasil panen padi organik yang melimpah, menunjukkan keberhasilan program pertanian berkelanjutan.",
-        image: "/berita_agustus.jpg",
-        date: "15 Juni 2025",
-        slug: "/berita/panen-raya-padi-organik",
-    },
-];
+// Interface untuk tipe data
+interface Berita {
+  title: string;
+  slug: { current: string };
+  mainImage: any;
+  publishedAt: string;
+  excerpt: string;
+}
 
-// Ambil berita pertama sebagai berita utama
-const featuredNews = newsData[0];
-// Ambil dua berita berikutnya sebagai berita sekunder
-const otherNews = newsData.slice(1, 4);
+// Fungsi untuk mengambil 3 berita terbaru dari Sanity
+async function getLatestNews() {
+  // Query ini mengambil 3 berita terbaru dan membuat excerpt otomatis
+  const query = `*[_type == "berita"] | order(publishedAt desc) [0...4] {
+    title,
+    slug,
+    mainImage,
+    publishedAt,
+    "excerpt": array::join(string::split(pt::text(body), "")[0..120], "") + "..."
+  }`;
 
+  // Mengambil data dengan tag 'berita' untuk revalidasi on-demand
+  const data = await client.fetch(query, {}, {
+    next: { tags: ['berita'] }
+  });
+  return data;
+}
 
-export default function LatestNews() {
-    return (
-        <section className="bg-white py-20">
-            <div className="container mx-auto px-6">
-                
-                {/* Judul Bagian (tidak berubah) */}
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-800">
+export default async function LatestNews() {
+  const latestNews: Berita[] = await getLatestNews();
+
+  // Jika tidak ada berita, komponen ini tidak akan ditampilkan
+  if (!latestNews || latestNews.length === 0) {
+    return null;
+  }
+
+  // Memisahkan berita utama dan berita lainnya
+  const featuredNews = latestNews[0];
+  const otherNews = latestNews.slice(1);
+
+  return (
+    <section className="bg-white py-20">
+      <div className="container mx-auto px-6">
+          
+          <div className="text-center mb-12">
+                    <span className="text-sm font-semibold text-red-600 bg-red-100 px-3 py-1 rounded-full">
+                        Berita dan Kegiatan
+                    </span>
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mt-4">
                         Berita & Kegiatan Terbaru
                     </h2>
                     <p className="text-lg text-gray-500 mt-2">
@@ -56,57 +60,63 @@ export default function LatestNews() {
                     </p>
                     <div className="mt-4 w-24 h-1.5 bg-red-600 mx-auto rounded-full"></div>
                 </div>
+          {/* Grid Layout Editorial */}
 
-                {/* Grid Layout Editorial Baru */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-                    
-                    {/* KOLOM KIRI: BERITA UTAMA */}
-                    <Link href={featuredNews.slug}>
-                        <div className="bg-white rounded-xl overflow-hidden group">
-                            <div className="relative w-full aspect-video">
-                                <Image
-                                    src={featuredNews.image}
-                                    alt={featuredNews.title}
-                                    layout="fill"
-                                    objectFit="cover"
-                                    className="transition-transform duration-500 group-hover:scale-105"
-                                />
-                            </div>
-                            <div className="p-6">
-                                <p className="text-sm text-gray-500 mb-2">{featuredNews.date}</p>
-                                <h3 className="text-2xl font-bold text-gray-800 mb-3 hover:text-red-600 transition-colors">{featuredNews.title}</h3>
-                                <p className="text-gray-600 line-clamp-3">{featuredNews.excerpt}</p>
-                            </div>
-                        </div>
-                    </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              
+              {/* KOLOM KIRI: BERITA UTAMA */}
+              <Link href={`/berita/${featuredNews.slug.current}`} className="block group">
+                  <div className="bg-neutral-surface rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl">
+                      <div className="relative w-full aspect-video">
+                          <Image
+                              src={urlFor(featuredNews.mainImage).url()}
+                              alt={featuredNews.title}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                      </div>
+                      <div className="p-6">
+                          <p className="text-sm text-text-subdued mb-2">
+                              {new Date(featuredNews.publishedAt).toLocaleDateString("id-ID", { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </p>
+                          <h3 className="text-2xl font-bold text-text-heading mb-3 group-hover:text-primary transition-colors font-serif">
+                              {featuredNews.title}
+                          </h3>
+                          <p className="text-text-body line-clamp-3">
+                              {featuredNews.excerpt}
+                          </p>
+                      </div>
+                  </div>
+              </Link>
 
-                    {/* KOLOM KANAN: DAFTAR BERITA LAINNYA */}
-                    <div className="flex flex-col gap-8">
-                        {otherNews.map((newsItem) => (
-                            <Link href={newsItem.slug} key={newsItem.title}>
-                                <div className="flex gap-5 items-center group">
-                                    <div className="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
-                                        <Image
-                                            src={newsItem.image}
-                                            alt={newsItem.title}
-                                            layout="fill"
-                                            objectFit="cover"
-                                            className="transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">{newsItem.date}</p>
-                                        <h4 className="text-lg font-bold text-gray-800 line-clamp-2 group-hover:text-red-600 transition-colors">
-                                            {newsItem.title}
-                                        </h4>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
+              {/* KOLOM KANAN: DAFTAR BERITA LAINNYA */}
+              <div className="flex flex-col gap-8">
+                  {otherNews.map((newsItem) => (
+                      <Link href={`/berita/${newsItem.slug.current}`} key={newsItem.slug.current} className="block group">
+                          <div className="flex gap-5 items-center">
+                              <div className="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+                                  <Image
+                                      src={urlFor(newsItem.mainImage).url()}
+                                      alt={newsItem.title}
+                                      fill
+                                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                  />
+                              </div>
+                              <div>
+                                  <p className="text-sm text-text-subdued mb-1">
+                                      {new Date(newsItem.publishedAt).toLocaleDateString("id-ID", { year: 'numeric', month: 'long', day: 'numeric' })}
+                                  </p>
+                                  <h4 className="text-lg font-bold text-text-heading line-clamp-2 group-hover:text-primary transition-colors font-serif">
+                                      {newsItem.title}
+                                  </h4>
+                              </div>
+                          </div>
+                      </Link>
+                  ))}
+              </div>
+          </div>
 
-            </div>
-        </section>
-    );
+      </div>
+    </section>
+  );
 }

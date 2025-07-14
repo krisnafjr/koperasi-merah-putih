@@ -1,13 +1,23 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+// 1. Impor font Merriweather dan Lato
+import { Lato, Merriweather } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/Footer"; // <-- 1. Impor komponen Footer
+import Footer from "@/components/Footer";
 
-const poppins = Poppins({
+// 2. Konfigurasi font Lato untuk isi teks
+const lato = Lato({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "700"],
+  variable: '--font-lato', // Siapkan sebagai CSS Variable
+});
+
+// 3. Konfigurasi font Merriweather untuk judul
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["700", "900"],
+  variable: '--font-merriweather', // Siapkan sebagai CSS Variable
 });
 
 export const metadata: Metadata = {
@@ -22,9 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
+      {/* 4. Gabungkan variabel font di body */}
+      <body className={`${lato.variable} ${merriweather.variable} font-sans`}>
         {children}
-        <Footer /> {/* <-- 2. Letakkan Footer di sini */}
+        <Footer />
       </body>
     </html>
   );
