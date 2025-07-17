@@ -9,9 +9,9 @@ import LatestNews from "@/components/LatestNews";
 import Testimonial from "@/components/Testimonial";
 import PotensiDesa from "@/components/PotensiDesa"; // <-- 1. Impor komponen baru
 import CTA from "@/components/CTA";
-import { pendiriQuery } from "@/sanity/lib/pendiri";
-import { client } from "@/sanity/lib/sanityClient";
-import PendiriGrid from "@/components/PendiriGrid";
+import { pendiriQuery } from "@/sanity/lib/pendiri"; /*ijul*/
+import { client } from "@/sanity/lib/sanityClient"; /*ijul*/
+import PendiriGrid from "@/components/PendiriGrid"; /*ijul*/
 
 export default async function HomePage() {
    const data = await client.fetch(pendiriQuery);
@@ -24,10 +24,10 @@ export default async function HomePage() {
       <FeaturedProducts />
       <LatestNews />
       <Testimonial />
-      {/* Section: Struktural Pendiri */}
-      <section className="py-12 px-4 md:px-10 bg-white">
-        <PendiriGrid data={data} />
-      </section>
+      {/* Section: Struktural Pendiri */} /*ijul*/
+      <section className="py-12 px-4 md:px-10 bg-white"> /*ijul*/
+        <PendiriGrid data={data} /> /*ijul*/
+      </section> /*ijul*/
       <PotensiDesa /> {/* <-- 2. Tambahkan di sini */}
       <CTA />
     </main>
